@@ -1,0 +1,4 @@
+data/*
+
+!data/labels/
+!data/labels/**
