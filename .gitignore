@@ -1,4 +1,7 @@
+# Ignore everything in data
 data/*
-
+# but keep labels
 !data/labels/
 !data/labels/**
+
+HOG/data/*
