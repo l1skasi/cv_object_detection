@@ -5,3 +5,5 @@ data/*
 !data/labels/**
 
 HOG/data/*
+
+HOG_car/data/*
