@@ -6,15 +6,15 @@ from typing import Optional, List, Tuple
 import pandas as pd
 from PIL import Image
 
-IMAGE_ROOT = Path("data/100k/train")
+IMAGE_ROOT = Path("../data/100k/train")
 
 
-OUT_DIR = Path("data/my_yolo_data")
+OUT_DIR = Path("../data/my_yolo_data")
 
 CSV_PATHS = {
-    "train": Path("data/labels/train_labels.csv"),
-    "val":   Path("data/labels/val_labels.csv"),
-    "test":  Path("data/labels/test_labels.csv"),
+    "train": Path("../data/labels/train_labels.csv"),
+    "val":   Path("../data/labels/val_labels.csv"),
+    "test":  Path("../data/labels/test_labels.csv"),
 }
 
 
@@ -40,15 +40,6 @@ def normalize_category(cat: str) -> str:
 
 
 def resolve_image_path(root_dirs: List[Path], image_value: str) -> Optional[Path]:
-    """
-    Resolve an image path from an ID like '002d290d-01969e7d' (no ext)
-    or a filename like '002d290d-01969e7d.jpg'.
-
-    Tries:
-      1) direct name (if ext provided)
-      2) stem + common extensions
-      3) fallback: rglob(stem + ".*")  (last resort)
-    """
     image_value = str(image_value).strip()
     p_value = Path(image_value)
     stem = p_value.stem
@@ -207,13 +198,6 @@ def main():
 
     write_data_yaml()
 
-    print("\nDone ✅")
-    print(f"Dataset folder: {OUT_DIR.resolve()}")
-    print(f"Total images written: {total_written}")
-    print(f"Total missing images: {total_missing}")
-    print(f"Total label files: {total_label_files}")
-    print(f"Total boxes written: {total_boxes}")
-    print(f"data.yaml: {OUT_DIR / 'data.yaml'}")
 
 
 if __name__ == "__main__":
