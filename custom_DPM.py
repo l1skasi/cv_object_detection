@@ -21,14 +21,14 @@ class DPM():
         image_w = 80,
         step_x = 14, 
         step_y = 14, 
-        orientations = 9,
+        orientations = 11,
         pix_per_cell_root = 16, 
         cells_per_block_root = 4, 
         pix_per_cell_part = 8, 
         cells_per_block_part = 2, 
         parts_count = 2, 
-        part_w = (30,79), 
-        part_h = (79,30),
+        part_w = (79,79), 
+        part_h = (30,30),
         downscale = 2.0,
         conf_thresh = 0.65,
         IoU_thresh = 0.65,
@@ -72,13 +72,13 @@ class DPM():
                                                     reg_alpha = 30, reg_lambda = 0)
         else:
             for i in range(self.parts_count+1):
-                models[str(i)] = joblib.load("./clfs/{}.sav".format(str(i)))
+                models[str(i)] = joblib.load("./clfs_car/{}.sav".format(str(i)))
 
         return models
     
     def save_clfs(self):
         for i in range(self.parts_count+1):
-            joblib.dump(self.models[str(i)], "./clfs/{}.sav".format(str(i))) 
+            joblib.dump(self.models[str(i)], "./clfs_car/{}.sav".format(str(i))) 
     
     def initialize_part_filters(self):
         self.part_filters = joblib.load("./part_filters.npy")
@@ -158,15 +158,21 @@ class DPM():
                                 block_norm= 'L2')
 
                 probs = self.models[str(i+1)].predict_proba([part_features])
-                if probs[0][1] > 0.65 and probs[0][1] > max_prob[i+1]:
+                if probs[0][1] > 0.30 and probs[0][1] > max_prob[i+1]:
                     max_coord_point[i+1] = (y,x)
                     max_prob[i+1] = probs[0][1]
 
         return max_prob, max_coord_point
 	
     def get_filters_cost(self, best_coord, filters_nmb):
-        return np.sqrt((np.mean(self.part_filters[filters_nmb - 1],axis=0)[0] - best_coord[0])**2 + 
-                       (np.mean(self.part_filters[filters_nmb - 1],axis=0)[1] - best_coord[1])**2)/(self.parts_count)
+        y_offset = 0
+        if filters_nmb > 1:
+            y_offset = sum(self.part_h[:filters_nmb-1])
+        mean_coords = np.mean(self.part_filters[filters_nmb - 1], axis=0)
+        return np.sqrt(
+            (mean_coords[0] + y_offset - best_coord[0])**2 +
+            (mean_coords[1] - best_coord[1])**2
+        ) / self.parts_count
 
     def process_frame(self,img):
         # constant
@@ -211,8 +217,9 @@ class DPM():
                     scale = img.shape[0]//resized.shape[0]
                     print("Detection:: Location -> ({}, {})".format(x, y))
                     print("Scale ->  {} | Confidence Score {}".format(scale,res[0]))
-                    print("Width and Height of bounding box -> ({}, {}) \n".format(res[2],res[3]))
-                    detections.append([(x+res[1][1])*scale,(y+res[1][0])*scale,res[0],res[2]*scale,res[3]*scale])
+                    print("Width and Height of bounding box -> ({}, {}) \n".format(self.image_w, self.image_h))
+                    # Bounding box is always the root filter (sliding window) size
+                    detections.append([x*scale, y*scale, res[0], self.image_w*scale, self.image_h*scale])
 
 
         # get bounding boxes and scores from detections
@@ -234,5 +241,5 @@ class DPM():
         # In my case I have binary classification: ship - 1
         labels=torch.ones(len(rects),dtype=torch.int)
         # save results of detection
-        cv2.imwrite('./result/'+ name + '.jpg',img)
+        cv2.imwrite('./result_car/'+ name + '.jpg',img)
         return {"boxes":rects,"scores":scores,"labels":labels}

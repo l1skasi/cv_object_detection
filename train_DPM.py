@@ -12,10 +12,10 @@ def hyperparams_tuning(model,x_train,y_train):
     params  =  {'max_depth': [3, 6, 9, 12],
                 'learning_rate': [0.01, 0.05, 0.1, 0.2, 0.3],
                 'n_estimators': [25, 50, 75, 100],
-                'colsample_bytree': [0.3, 0.4, 0.5, 0.7],
-                'reg_lambda':[0,1],
-                'reg_alpha':[30,40,50,60,70],
-                'gamma':[1,2,5,8],}
+                'colsample_bytree': [0.3, 0.4, 0.5, 0.7], #fraction of features
+                'reg_lambda':[0,1], #L2 regularization
+                'reg_alpha':[30,40,50,60,70], #L1 regularization
+                'gamma':[1,2,5,8],} #minimum loss reduction to make a further partition on a leaf node of the tree.
 
     clf = GridSearchCV(estimator=model, 
                    param_grid=params, 
